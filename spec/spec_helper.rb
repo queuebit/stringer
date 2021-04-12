@@ -1,5 +1,7 @@
-ENV['RACK_ENV'] = 'test'
+ENV["RACK_ENV"] = "test"
 
+require "capybara"
+require "capybara/server"
 require "rspec"
 require "rspec-html-matchers"
 require "rack/test"
@@ -8,17 +10,17 @@ require "faker"
 require "ostruct"
 require "date"
 
-require "coveralls"
-Coveralls.wear!
-
-require "factories/feed_factory"
-require "factories/story_factory"
-require "factories/user_factory"
+require_relative "support/coverage"
+require_relative "factories"
 
 require "./app"
 
+Capybara.server = :webrick
+
 RSpec.configure do |config|
   config.include Rack::Test::Methods
+  config.include RSpecHtmlMatchers
+  config.include Factories
 end
 
 def app_require(file)
@@ -30,5 +32,5 @@ def app
 end
 
 def session
-  last_request.env['rack.session']
+  last_request.env["rack.session"]
 end

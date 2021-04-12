@@ -1,11 +1,27 @@
 class FeedFactory
-  class FakeFeed < OpenStruct; end;
+  class FakeFeed < OpenStruct
+    def as_fever_json
+      {
+        id: id,
+        favicon_id: 0,
+        title: name,
+        url: url,
+        site_url: url,
+        is_spark: 0,
+        last_updated_on_time: last_fetched.to_i
+      }
+    end
+  end
 
   def self.build(params = {})
     FakeFeed.new(
-      name: params[:name] || Faker::Name.name + " on Software",
+      id: rand(100),
+      group_id: params[:group_id] || rand(100),
+      name: params[:name] || Faker::Name.name + " on Software", # rubocop:disable Style/StringConcatenation
       url: params[:url] || Faker::Internet.url,
       last_fetched: params[:last_fetched] || Time.now,
-      stories: params[:stories] || [])
+      stories: params[:stories] || [],
+      unread_stories: []
+    )
   end
 end

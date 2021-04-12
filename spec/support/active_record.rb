@@ -1,15 +1,14 @@
-require 'active_record'
+require "active_record"
 
-config = YAML.load(File.read('config/database.yml'))
-ActiveRecord::Base.establish_connection(config['test'])
+db_config = YAML.safe_load(File.read("config/database.yml"))
+ActiveRecord::Base.establish_connection(db_config["test"])
+ActiveRecord::Base.logger = Logger.new("log/test.log")
 
 def need_to_migrate?
-  ActiveRecord::Migrator.new(:up, 'db/migrate').pending_migrations.any?
+  ActiveRecord::Base.connection.migration_context.needs_migration?
 end
 
-if need_to_migrate?
-  ActiveRecord::Migrator.up "db/migrate"
-end
+ActiveRecord::MigrationContext.new("db/migrate").migrate if need_to_migrate?
 
 RSpec.configure do |config|
   config.around do |example|

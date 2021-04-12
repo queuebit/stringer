@@ -1,25 +1,25 @@
-require "highline"
+require "io/console"
+
 require_relative "../commands/users/change_user_password"
 
 class ChangePassword
-  def initialize(ui = HighLine.new, command = ChangeUserPassword.new)
-    @ui      = ui
+  def initialize(command = ChangeUserPassword.new, output: $stdout, input: $stdin)
     @command = command
+    @output = output
+    @input = input
   end
 
   def change_password
-    while (password = ask_password) != (confirmation = ask_confirmation)
-      @ui.say "The confirmation doesn't match the password. Please try again."
+    while (password = ask_password) != ask_confirmation
+      @output.puts "The confirmation doesn't match the password. Please try again."
     end
     @command.change_user_password(password)
   end
 
   private
+
   def ask_password
-    ask_hidden("New password: ") do |q|
-      q.validate = /\A.+\Z/
-      q.responses[:not_valid] = "The password can't be blank."
-    end
+    ask_hidden("New password: ")
   end
 
   def ask_confirmation
@@ -27,9 +27,9 @@ class ChangePassword
   end
 
   def ask_hidden(question)
-    @ui.ask(question) do |q|
-      q.echo = "*"
-      yield(q) if block_given?
-    end
+    @output.print(question)
+    user_input = $stdin.noecho { @input.gets }.chomp
+    @output.puts
+    user_input
   end
 end

@@ -3,11 +3,11 @@ require "spec_helper"
 app_require "utils/opml_parser"
 
 describe OpmlParser do
+  let(:parser) { OpmlParser.new }
+
   describe "#parse_feeds" do
     it "it returns a hash of feed details from an OPML file" do
-      parser = OpmlParser.new
-
-      result = parser.parse_feeds(<<-eos)
+      result = parser.parse_feeds(<<-EOS)
         <?xml version="1.0" encoding="UTF-8"?>
         <opml version="1.0">
         <head>
@@ -20,20 +20,20 @@ describe OpmlParser do
               xmlUrl="http://mdswanson.com/atom.xml" htmlUrl="http://mdswanson.com/"/>
         </body>
         </opml>
-      eos
+      EOS
 
-      result.count.should eq 2
-      result.first[:name].should eq "a sample feed"
-      result.first[:url].should eq "http://feeds.feedburner.com/foobar"
-    
-      result.last[:name].should eq "Matt's Blog"
-      result.last[:url].should eq "http://mdswanson.com/atom.xml"
+      resulted_values = result.values.flatten
+      expect(resulted_values.size).to eq 2
+      expect(resulted_values.first[:name]).to eq "a sample feed"
+      expect(resulted_values.first[:url]).to eq "http://feeds.feedburner.com/foobar"
+
+      expect(resulted_values.last[:name]).to eq "Matt's Blog"
+      expect(resulted_values.last[:url]).to eq "http://mdswanson.com/atom.xml"
+      expect(result.keys.first).to eq "Ungrouped"
     end
 
     it "handles nested groups of feeds" do
-      parser = OpmlParser.new
-
-      result = parser.parse_feeds(<<-eos)
+      result = parser.parse_feeds(<<-EOS)
         <?xml version="1.0" encoding="UTF-8"?>
         <opml version="1.0">
         <head>
@@ -46,17 +46,17 @@ describe OpmlParser do
           </outline>
         </body>
         </opml>
-      eos
+      EOS
+      resulted_values = result.values.flatten
 
-      result.count.should eq 1
-      result.first[:name].should eq "a sample feed"
-      result.first[:url].should eq "http://feeds.feedburner.com/foobar"
+      expect(resulted_values.count).to eq 1
+      expect(resulted_values.first[:name]).to eq "a sample feed"
+      expect(resulted_values.first[:url]).to eq "http://feeds.feedburner.com/foobar"
+      expect(result.keys.first).to eq "Technology News"
     end
 
     it "doesn't explode when there are no feeds" do
-      parser = OpmlParser.new
-
-      result = parser.parse_feeds(<<-eos)
+      result = parser.parse_feeds(<<-EOS)
         <?xml version="1.0" encoding="UTF-8"?>
         <opml version="1.0">
         <head>
@@ -65,9 +65,28 @@ describe OpmlParser do
         <body>
         </body>
         </opml>
-      eos
+      EOS
 
-      result.should be_empty
+      expect(result).to be_empty
+    end
+
+    it "handles Feedly's exported OPML (missing :title)" do
+      result = parser.parse_feeds(<<-EOS)
+        <?xml version="1.0" encoding="UTF-8"?>
+        <opml version="1.0">
+        <head>
+          <title>My feeds (Feedly)</title>
+        </head>
+        <body>
+          <outline text="a sample feed" type="rss"
+              xmlUrl="http://feeds.feedburner.com/foobar" htmlUrl="http://www.example.org/"/>
+        </body>
+        </opml>
+      EOS
+      resulted_values = result.values.flatten
+
+      expect(resulted_values.count).to eq 1
+      expect(resulted_values.first[:name]).to eq "a sample feed"
     end
   end
 end

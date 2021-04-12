@@ -1,47 +1,49 @@
+require_relative "./application_record"
 require_relative "./feed"
 
-class Story < ActiveRecord::Base
+class Story < ApplicationRecord
   belongs_to :feed
 
-  validates_uniqueness_of :permalink, :scope => :feed_id
+  validates_uniqueness_of :entry_id, scope: :feed_id
 
-  UNTITLED = "[untitled]"
+  UNTITLED = "[untitled]".freeze
 
   def headline
-    self.title.nil? ? UNTITLED : strip_html(self.title)[0, 50]
+    title.nil? ? UNTITLED : strip_html(title)[0, 50]
   end
 
   def lead
-    strip_html(self.body)[0,100]
+    strip_html(body)[0, 100]
   end
 
   def source
-    self.feed.name
+    feed.name
   end
 
   def pretty_date
-    I18n.l(self.published)
+    I18n.l(published)
   end
 
-  def as_json(options = {})
+  def as_json(_options = {})
     super(methods: [:headline, :lead, :source, :pretty_date])
   end
 
   def as_fever_json
     {
-      id: self.id,
-      feed_id: self.feed.id,
-      title: self.title,
+      id: id,
+      feed_id: feed_id,
+      title: title,
       author: source,
       html: body,
-      url: self.permalink,
-      is_saved: self.is_starred ? 1 : 0,
-      is_read: self.is_read ? 1 : 0,
-      created_on_time: self.published.to_i
+      url: permalink,
+      is_saved: is_starred ? 1 : 0,
+      is_read: is_read ? 1 : 0,
+      created_on_time: published.to_i
     }
   end
 
   private
+
   def strip_html(contents)
     Loofah.fragment(contents).text
   end

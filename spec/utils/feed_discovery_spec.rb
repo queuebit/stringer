@@ -3,9 +3,10 @@ require "spec_helper"
 app_require "utils/feed_discovery"
 
 describe FeedDiscovery do
-  let(:finder) { stub }
-  let(:parser) { stub }
-  let(:feed) { stub(feed_url: url) }
+  let(:finder) { double }
+  let(:client) { class_double(HTTParty) }
+  let(:parser) { class_double(Feedjira) }
+  let(:feed) { double(feed_url: url) }
   let(:url) { "http://example.com" }
 
   let(:invalid_discovered_url) { "http://not-a-valid-feed.com" }
@@ -13,40 +14,50 @@ describe FeedDiscovery do
 
   describe "#discover" do
     it "returns false if url is not a feed and feed url cannot be discovered" do
-      parser.should_receive(:fetch_and_parse).with(url, anything).and_raise(StandardError)
-      finder.should_receive(:find).and_return([])
+      expect(client).to receive(:get).with(url)
+      expect(parser).to receive(:parse).and_raise(StandardError)
+      expect(finder).to receive(:find).and_return([])
 
-      result = FeedDiscovery.new.discover(url, finder, parser)
-      
-      result.should be_false
+      result = FeedDiscovery.new.discover(url, finder, parser, client)
+
+      expect(result).to eq(false)
     end
 
     it "returns a feed if the url provided is parsable" do
-      parser.should_receive(:fetch_and_parse).with(url, anything).and_return(feed)
+      expect(client).to receive(:get).with(url)
+      expect(parser).to receive(:parse).and_return(feed)
 
-      result = FeedDiscovery.new.discover(url, finder, parser)
-      
-      result.should eq feed
+      result = FeedDiscovery.new.discover(url, finder, parser, client)
+
+      expect(result).to eq feed
     end
 
     it "returns false if the discovered feed is not parsable" do
-      parser.should_receive(:fetch_and_parse).with(url, anything).and_raise(StandardError)
-      finder.should_receive(:find).and_return([invalid_discovered_url])
-      parser.should_receive(:fetch_and_parse).with(invalid_discovered_url, anything).and_raise(StandardError)
+      expect(client).to receive(:get).with(url)
+      expect(parser).to receive(:parse).and_raise(StandardError)
 
-      result = FeedDiscovery.new.discover(url, finder, parser)
-      
-      result.should be_false
+      expect(finder).to receive(:find).and_return([invalid_discovered_url])
+
+      expect(client).to receive(:get).with(invalid_discovered_url)
+      expect(parser).to receive(:parse).and_raise(StandardError)
+
+      result = FeedDiscovery.new.discover(url, finder, parser, client)
+
+      expect(result).to eq(false)
     end
 
     it "returns the feed if the discovered feed is parsable" do
-      parser.should_receive(:fetch_and_parse).with(url, anything).and_raise(StandardError)
-      finder.should_receive(:find).and_return([valid_discovered_url])
-      parser.should_receive(:fetch_and_parse).with(valid_discovered_url, anything).and_return(feed)
+      expect(client).to receive(:get).with(url)
+      expect(parser).to receive(:parse).and_raise(StandardError)
 
-      result = FeedDiscovery.new.discover(url, finder, parser)
-      
-      result.should eq feed
+      expect(finder).to receive(:find).and_return([valid_discovered_url])
+
+      expect(client).to receive(:get).with(valid_discovered_url)
+      expect(parser).to receive(:parse).and_return(feed)
+
+      result = FeedDiscovery.new.discover(url, finder, parser, client)
+
+      expect(result).to eq feed
     end
   end
 end

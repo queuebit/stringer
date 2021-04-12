@@ -1,41 +1,53 @@
-source 'https://rubygems.org'
-
-gem "sinatra"
-gem "sinatra-activerecord"
-gem "sinatra-flash"
-gem "sinatra-contrib", github: "sinatra/sinatra-contrib"
-gem "sinatra-assetpack", :require => "sinatra/assetpack"
-gem "i18n"
-
-gem "rake"
-gem "delayed_job_active_record"
-gem "bcrypt-ruby"
-gem "will_paginate"
-
-gem "feedzirra", github: "swanson/feedzirra"
-gem "loofah"
-gem "nokogiri"
-gem "feedbag", github: "dwillis/feedbag"
-gem "coveralls", require: false
-gem "highline", require: false
-gem "thread"
+ruby_version_file = File.expand_path(".ruby-version", __dir__)
+ruby File.read(ruby_version_file).chomp if File.readable?(ruby_version_file)
+source "https://rubygems.org"
 
 group :production do
-  gem "unicorn"
   gem "pg"
+  gem "unicorn"
 end
 
 group :development do
-  gem "sqlite3"
+  gem "rubocop", require: false
+  gem "rubocop-rails", require: false
+  gem "rubocop-rake", require: false
+  gem "rubocop-rspec", require: false
 end
 
-group(:development, :testing) do
-  gem "pry"
+group :development, :test do
+  gem "capybara"
+  gem "coveralls_reborn", require: false
+  gem "faker"
+  gem "pry-byebug"
+  gem "rack-test"
   gem "rspec"
   gem "rspec-html-matchers"
-  gem "rack-test"
   gem "shotgun"
-  gem "racksh"
-  gem "faker"
-  gem "foreman"
+  gem "simplecov"
+  gem "timecop"
 end
+
+gem "activerecord"
+gem "bcrypt"
+gem "delayed_job"
+gem "delayed_job_active_record"
+gem "feedbag"
+gem "feedjira"
+gem "httparty"
+gem "i18n"
+gem "loofah"
+gem "nokogiri"
+gem "rack-protection"
+gem "racksh"
+gem "rack-ssl"
+gem "rake"
+gem "sass"
+gem "sinatra"
+gem "sinatra-activerecord"
+gem "sinatra-contrib"
+gem "sinatra-flash"
+gem "sprockets"
+gem "sprockets-helpers"
+gem "thread"
+gem "uglifier"
+gem "will_paginate"
